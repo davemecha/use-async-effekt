@@ -1,0 +1,41 @@
+{
+  "name": "use-async-effekt",
+  "version": "1.0.0",
+  "description": "React hooks for async effects and memoization with proper dependency tracking",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "react",
+    "hooks",
+    "async",
+    "effect",
+    "memo",
+    "typescript"
+  ],
+  "author": "Dave Gööck",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davemecha/use-async-effekt.git"
+  },
+  "bugs": {
+    "url": "https://github.com/davemecha/use-async-effekt/issues"
+  },
+  "homepage": "https://github.com/davemecha/use-async-effekt#readme",
+  "peerDependencies": {
+    "react": ">=16.8.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "react": "^18.0.0",
+    "typescript": "^5.0.0"
+  }
+}
