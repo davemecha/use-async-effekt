@@ -12,20 +12,14 @@ export function useAsyncEffekt(
   deps?: DependencyList
 ): void {
   const isMountedRef = useRef(true);
-  const cleanupRef = useRef<(() => void) | void>();
 
   useEffect(() => {
-    isMountedRef.current = true;
+    let cleanup: (() => void) | void;
+    let effectPromise: Promise<void>;
 
     const executeEffect = async () => {
       try {
-        const cleanup = await effect(() => isMountedRef.current);
-        if (isMountedRef.current) {
-          cleanupRef.current = cleanup;
-        } else if (cleanup) {
-          // If component unmounted while effect was running, call cleanup immediately
-          cleanup();
-        }
+        cleanup = await effect(() => isMountedRef.current);
       } catch (error) {
         if (isMountedRef.current) {
           console.error("useAsyncEffekt error:", error);
@@ -33,14 +27,19 @@ export function useAsyncEffekt(
       }
     };
 
-    executeEffect();
+    effectPromise = executeEffect();
 
     return () => {
-      isMountedRef.current = false;
-      if (cleanupRef.current) {
-        cleanupRef.current();
-        cleanupRef.current = undefined;
-      }
+      // Wait for the effect to complete before running cleanup
+      effectPromise
+        .then(() => {
+          if (cleanup) {
+            cleanup();
+          }
+        })
+        .catch(() => {
+          // Effect already failed, no cleanup needed
+        });
     };
   }, deps);
 
