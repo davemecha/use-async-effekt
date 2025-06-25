@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef, DependencyList } from "react";
 
 /**
- * A hook for memoizing async computations with dependency tracking.
+ * Memoizes the result of an asynchronous computation, updating when dependencies change and preserving the last successful value on error.
  *
- * @param factory - An async function that returns the memoized value
- * @param deps - Dependency array for the memoization
- * @returns The memoized value, undefined while loading, or the last successful value on error
+ * The factory function receives an `isMounted` callback to check if the component is still mounted before updating state.
+ *
+ * @param factory - Function that performs the asynchronous computation and receives an `isMounted` callback
+ * @param deps - Optional array of dependencies that trigger recomputation when changed
+ * @returns The current memoized value, which is `undefined` while loading or the last successful value if an error occurs
  */
 export function useAsyncMemo<T>(
   factory: (isMounted: () => boolean) => Promise<T> | T,

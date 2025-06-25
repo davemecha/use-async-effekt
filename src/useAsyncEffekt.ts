@@ -1,70 +1,12 @@
 import { useEffect, useRef, DependencyList } from "react";
 
 /**
- * A hook for handling async effects with proper dependency tracking and cleanup management.
- * The name is intentionally spelled with "k" to work correctly with react-hooks/exhaustive-deps ESLint rule.
+ * Runs an asynchronous effect in a React component with dependency tracking, sequential execution, and robust cleanup handling.
  *
- * @param effect - An async function to execute. Receives an object with:
- *   - `isMounted`: Function to check if the component is still mounted
- *   - `waitForPrevious`: Function that returns a Promise to wait for the previous effect and its cleanup to complete
+ * The effect function receives utilities to check if the component is still mounted and to wait for the completion of previous effects and their cleanups. Supports both synchronous and asynchronous cleanup functions returned from the effect.
  *
- *   The effect function can optionally return a cleanup function that can be either synchronous or asynchronous.
- *
- * @param deps - Dependency array for the effect (same as useEffect)
- *
- * @example
- * // Basic usage without waiting for previous effects
- * useAsyncEffekt(async ({ isMounted }) => {
- *   const data = await fetchData();
- *   if (isMounted()) {
- *     setData(data);
- *   }
- * }, []);
- *
- * @example
- * // Usage with waiting for previous effect to complete
- * useAsyncEffekt(async ({ isMounted, waitForPrevious }) => {
- *   await waitForPrevious(); // Wait for previous effect and cleanup
- *   const data = await fetchData();
- *   if (isMounted()) {
- *     setData(data);
- *   }
- * }, [dependency]);
- *
- * @example
- * // Usage with synchronous cleanup
- * useAsyncEffekt(async ({ isMounted }) => {
- *   const subscription = await createSubscription();
- *
- *   return () => {
- *     subscription.unsubscribe(); // Sync cleanup
- *   };
- * }, []);
- *
- * @example
- * // Usage with asynchronous cleanup
- * useAsyncEffekt(async ({ isMounted }) => {
- *   const connection = await establishConnection();
- *
- *   return async () => {
- *     await connection.close(); // Async cleanup
- *   };
- * }, []);
- *
- * @example
- * // Complex usage with waiting and async cleanup
- * useAsyncEffekt(async ({ isMounted, waitForPrevious }) => {
- *   await waitForPrevious(); // Ensure previous effect is fully cleaned up
- *
- *   const resource = await acquireResource();
- *   if (isMounted()) {
- *     setResource(resource);
- *   }
- *
- *   return async () => {
- *     await resource.cleanup(); // Async cleanup
- *   };
- * }, [resourceId]);
+ * @param effect - An async function that receives an object with `isMounted` and `waitForPrevious` helpers. May return a cleanup function (sync or async).
+ * @param deps - Optional dependency array controlling when the effect runs, similar to React's `useEffect`.
  */
 export function useAsyncEffekt(
   effect: ({
