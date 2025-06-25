@@ -10,10 +10,10 @@ import { useEffect, useRef, DependencyList } from "react";
 export function useAsyncEffekt(
   effect: ({
     isMounted,
-    waitForLastEffect,
+    waitForPrevious,
   }: {
     isMounted: () => boolean;
-    waitForLastEffect: () => Promise<void>;
+    waitForPrevious: () => Promise<void>;
   }) => Promise<void | (() => void | Promise<void>)>,
   deps?: DependencyList
 ): void {
@@ -37,7 +37,7 @@ export function useAsyncEffekt(
       try {
         cleanup = await effect({
           isMounted: () => isMountedRef.current,
-          waitForLastEffect: () => previousEffectChain,
+          waitForPrevious: () => previousEffectChain,
         });
       } catch (error) {
         if (isMountedRef.current) {
