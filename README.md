@@ -12,15 +12,23 @@ npm install use-async-effekt
 
 ### `useAsyncEffekt`
 
-A hook for handling async effects with proper dependency tracking. The name is intentionally spelled with "k" to work correctly with `react-hooks/exhaustive-deps` ESLint rule.
+A hook for handling async effects with proper dependency tracking and cleanup management. The name is intentionally spelled with "k" to work correctly with `react-hooks/exhaustive-deps` ESLint rule.
 
-The hook provides an `isMounted` callback to check if the component is still mounted, helping prevent state updates on unmounted components.
+The hook provides:
+
+- An `isMounted` callback to check if the component is still mounted
+- A `waitForPrevious` function to wait for previous effects and their cleanup to complete
+- Support for both synchronous and asynchronous cleanup functions
 
 **Features:**
 
 - Proper cleanup handling - waits for async effects to complete before running cleanup
 - Race condition protection when dependencies change rapidly
 - Memory leak prevention with mount status checking
+- Sequential effect execution when needed
+- Support for both sync and async cleanup functions
+
+#### Basic Usage (Without Waiting)
 
 ```typescript
 import { useAsyncEffekt } from "use-async-effekt";
@@ -30,7 +38,7 @@ function MyComponent() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  useAsyncEffekt(async (isMounted) => {
+  useAsyncEffekt(async ({ isMounted }) => {
     setLoading(true);
 
     try {
@@ -45,17 +53,190 @@ function MyComponent() {
         setLoading(false);
       }
     }
-
-    // Optional cleanup function
-    return () => {
-      console.log("Cleaning up effect");
-    };
   }, []);
 
   if (loading) return <div>Loading...</div>;
   return <div>{data}</div>;
 }
 ```
+
+#### Usage with Sequential Effect Execution
+
+When you need to ensure that previous effects complete before starting new ones:
+
+```typescript
+function SearchComponent({ query }) {
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useAsyncEffekt(
+    async ({ isMounted, waitForPrevious }) => {
+      // Wait for any previous search to complete and clean up
+      await waitForPrevious();
+
+      if (!query) return;
+
+      setLoading(true);
+
+      try {
+        const searchResults = await searchAPI(query);
+        if (isMounted()) {
+          setResults(searchResults);
+          setLoading(false);
+        }
+      } catch (error) {
+        if (isMounted()) {
+          console.error("Search failed:", error);
+          setLoading(false);
+        }
+      }
+    },
+    [query]
+  );
+
+  return (
+    <div>
+      {loading && <div>Searching...</div>}
+      {results.map((result) => (
+        <div key={result.id}>{result.title}</div>
+      ))}
+    </div>
+  );
+}
+```
+
+#### Usage with Synchronous Cleanup
+
+```typescript
+function SubscriptionComponent({ topic }) {
+  const [messages, setMessages] = useState([]);
+
+  useAsyncEffekt(
+    async ({ isMounted }) => {
+      const subscription = await createSubscription(topic);
+
+      subscription.onMessage((message) => {
+        if (isMounted()) {
+          setMessages((prev) => [...prev, message]);
+        }
+      });
+
+      // Return synchronous cleanup function
+      return () => {
+        subscription.unsubscribe();
+        console.log("Subscription cleaned up");
+      };
+    },
+    [topic]
+  );
+
+  return (
+    <div>
+      {messages.map((msg, i) => (
+        <div key={i}>{msg}</div>
+      ))}
+    </div>
+  );
+}
+```
+
+#### Usage with Asynchronous Cleanup
+
+```typescript
+function ConnectionComponent({ endpoint }) {
+  const [status, setStatus] = useState("disconnected");
+
+  useAsyncEffekt(
+    async ({ isMounted }) => {
+      const connection = await establishConnection(endpoint);
+
+      if (isMounted()) {
+        setStatus("connected");
+      }
+
+      // Return asynchronous cleanup function
+      return async () => {
+        if (isMounted()) {
+          setStatus("disconnecting");
+          await connection.gracefulShutdown();
+          setStatus("disconnected");
+          console.log("Connection closed gracefully");
+        }
+      };
+    },
+    [endpoint]
+  );
+
+  return <div>Status: {status}</div>;
+}
+```
+
+#### Complex Usage: Sequential Effects with Async Cleanup
+
+```typescript
+function ResourceManager({ resourceId }) {
+  const [resource, setResource] = useState(null);
+  const [status, setStatus] = useState("idle");
+
+  useAsyncEffekt(
+    async ({ isMounted, waitForPrevious }) => {
+      // Ensure previous resource is fully cleaned up before acquiring new one
+      await waitForPrevious();
+
+      if (!resourceId) return;
+
+      setStatus("acquiring");
+
+      try {
+        const newResource = await acquireResource(resourceId);
+
+        if (isMounted()) {
+          setResource(newResource);
+          setStatus("ready");
+        }
+
+        // Return async cleanup to properly release the resource
+        return async () => {
+          setStatus("releasing");
+          await newResource.release();
+          setStatus("idle");
+          console.log(`Resource ${resourceId} released`);
+        };
+      } catch (error) {
+        if (isMounted()) {
+          setStatus("error");
+          console.error("Failed to acquire resource:", error);
+        }
+      }
+    },
+    [resourceId]
+  );
+
+  return (
+    <div>
+      <div>Status: {status}</div>
+      {resource && <div>Resource ID: {resource.id}</div>}
+    </div>
+  );
+}
+```
+
+#### When to Use `waitForPrevious`
+
+Use `waitForPrevious()` when:
+
+- You need to ensure previous effects complete before starting new ones
+- You're managing exclusive resources (database connections, file handles, etc.)
+- You want to prevent race conditions in sequential operations
+- You need to guarantee cleanup order
+
+Don't use `waitForPrevious()` when:
+
+- Effects can run independently and concurrently
+- You want maximum performance and don't need sequencing
+- Effects are simple and don't have interdependencies
+
+In most cases, you should not use `waitForPrevious()` to keep your application responsive. It is always a trade-off between responsiveness and slower sequential execution.
 
 ### `useAsyncMemo`
 
@@ -153,7 +334,7 @@ This configuration tells ESLint to treat `useAsyncEffekt` and `useAsyncMemo` the
 
 **Parameters:**
 
-- `effect: (isMounted: () => boolean) => Promise<void | (() => void)>` - Async function to execute. Receives an `isMounted` callback and can optionally return a cleanup function.
+- `effect: ({ isMounted, waitForPrevious }: { isMounted: () => boolean, waitForPrevious: () => Promise<void> }) => Promise<void | (() => void | Promise<void>)>` - Async function to execute. Receives an `isMounted` callback and a `waitForPrevious` function, and can optionally return a cleanup function.
 - `deps?: DependencyList` - Optional dependency array (same as `useEffect`)
 
 **Returns:** `void`
@@ -180,4 +361,4 @@ This configuration tells ESLint to treat `useAsyncEffekt` and `useAsyncMemo` the
 
 ## License
 
-MIT © Dave Gööck
+MIT Dave Gööck
