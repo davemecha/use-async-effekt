@@ -81,6 +81,7 @@ export function useAsyncEffekt(
   const lastEffectChainRef = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
+    isMountedRef.current = true;
     let cleanup: (() => void | Promise<void>) | void;
     let cleanupResolver: (() => void) | null = null;
 
@@ -114,6 +115,7 @@ export function useAsyncEffekt(
     );
 
     return () => {
+      isMountedRef.current = false;
       // Trigger cleanup and resolve the cleanup promise
       currentEffectPromise
         .then(async () => {
@@ -135,10 +137,4 @@ export function useAsyncEffekt(
         });
     };
   }, deps);
-
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
 }
