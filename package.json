@@ -33,7 +33,7 @@
   },
   "homepage": "https://github.com/davemecha/use-async-effekt#readme",
   "peerDependencies": {
-    "react": ">=16.8.0"
+    "react": ">=16.8.0 <20"
   },
   "devDependencies": {
     "@types/react": "^18.0.0",
