@@ -16,7 +16,9 @@ export function useAsyncMemo<T>(
   const lastSuccessfulValueRef = useRef<T | undefined>(undefined);
 
   useEffect(() => {
+    isMountedRef.current = true;
     let cancelled = false;
+
     const executeFactory = async () => {
       try {
         const result = await factory(() => isMountedRef.current);
@@ -36,15 +38,10 @@ export function useAsyncMemo<T>(
     executeFactory();
 
     return () => {
+      isMountedRef.current = false;
       cancelled = true;
     };
   }, deps);
-
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
 
   return value;
 }
