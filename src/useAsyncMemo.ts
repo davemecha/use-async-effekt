@@ -16,15 +16,16 @@ export function useAsyncMemo<T>(
   const lastSuccessfulValueRef = useRef<T | undefined>(undefined);
 
   useEffect(() => {
+    let cancelled = false;
     const executeFactory = async () => {
       try {
         const result = await factory(() => isMountedRef.current);
-        if (isMountedRef.current) {
+        if (isMountedRef.current && !cancelled) {
           setValue(result);
           lastSuccessfulValueRef.current = result;
         }
       } catch (error) {
-        if (isMountedRef.current) {
+        if (isMountedRef.current && !cancelled) {
           console.error("useAsyncMemo error:", error);
           // Keep the last successful value on error
           setValue(lastSuccessfulValueRef.current);
@@ -33,6 +34,10 @@ export function useAsyncMemo<T>(
     };
 
     executeFactory();
+
+    return () => {
+      cancelled = true;
+    };
   }, deps);
 
   useEffect(() => {
