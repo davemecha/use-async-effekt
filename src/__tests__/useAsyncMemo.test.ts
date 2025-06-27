@@ -1,5 +1,5 @@
 import React from "react";
-import { renderHook, act, waitFor } from "@testing-library/react";
+import { renderHook, act, waitFor } from "./test-utils";
 import { useAsyncMemo } from "../useAsyncMemo";
 
 describe("useAsyncMemo", () => {
@@ -31,7 +31,7 @@ describe("useAsyncMemo", () => {
       .mockResolvedValueOnce("value-2");
 
     const { result, rerender } = renderHook(
-      ({ dep }) => useAsyncMemo(computeFn, [dep]),
+      ({ dep }: { dep: string }) => useAsyncMemo(computeFn, [dep]),
       { initialProps: { dep: "dep1" } }
     );
 
@@ -58,7 +58,7 @@ describe("useAsyncMemo", () => {
   it("should not recompute when dependencies are the same", async () => {
     const computeFn = jest.fn().mockResolvedValue("test-value");
     const { result, rerender } = renderHook(
-      ({ dep }) => useAsyncMemo(computeFn, [dep]),
+      ({ dep }: { dep: string }) => useAsyncMemo(computeFn, [dep]),
       { initialProps: { dep: "same-dep" } }
     );
 
@@ -85,7 +85,7 @@ describe("useAsyncMemo", () => {
       .mockRejectedValueOnce(new Error("computation error"));
 
     const { result, rerender } = renderHook(
-      ({ dep }) => useAsyncMemo(computeFn, [dep]),
+      ({ dep }: { dep: string }) => useAsyncMemo(computeFn, [dep]),
       { initialProps: { dep: "dep1" } }
     );
 
@@ -141,7 +141,7 @@ describe("useAsyncMemo", () => {
       .mockReturnValueOnce(secondPromise);
 
     const { result, rerender } = renderHook(
-      ({ dep }) => useAsyncMemo(computeFn, [dep]),
+      ({ dep }: { dep: string }) => useAsyncMemo(computeFn, [dep]),
       { initialProps: { dep: "dep1" } }
     );
 
@@ -174,7 +174,7 @@ describe("useAsyncMemo", () => {
       .mockResolvedValueOnce("value-3");
 
     const { result, rerender } = renderHook(
-      ({ dep }) => useAsyncMemo(computeFn, [dep]),
+      ({ dep }: { dep: string }) => useAsyncMemo(computeFn, [dep]),
       { initialProps: { dep: "dep1" } }
     );
 
@@ -207,7 +207,7 @@ describe("useAsyncMemo", () => {
       .mockResolvedValueOnce("");
 
     const { result, rerender } = renderHook(
-      ({ dep }) => useAsyncMemo(computeFn, [dep]),
+      ({ dep }: { dep: string }) => useAsyncMemo(computeFn, [dep]),
       { initialProps: { dep: "null" } }
     );
 
@@ -266,7 +266,8 @@ describe("useAsyncMemo", () => {
     const obj2 = { id: 2, name: "test2" };
 
     const { result, rerender } = renderHook(
-      ({ obj, num }) => useAsyncMemo(computeFn, [obj.id, obj.name, num]),
+      ({ obj, num }: { obj: { id: number; name: string }; num: number }) =>
+        useAsyncMemo(computeFn, [obj.id, obj.name, num]),
       { initialProps: { obj: obj1, num: 42 } }
     );
 

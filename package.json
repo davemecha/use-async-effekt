@@ -20,10 +20,10 @@
     "test:react18": "npm run test:install-react18 && npm test",
     "test:react19": "npm run test:install-react19 && npm test",
     "test:all-versions": "npm run test:react16 && npm run test:react17 && npm run test:react18 && npm run test:react19",
-    "test:install-react16": "npm install react@^16.8.0 react-dom@^16.8.0 @types/react@^16.8.0 @types/react-dom@^16.8.0",
-    "test:install-react17": "npm install react@^17.0.0 react-dom@^17.0.0 @types/react@^17.0.0 @types/react-dom@^17.0.0",
-    "test:install-react18": "npm install react@^18.0.0 react-dom@^18.0.0 @types/react@^18.0.0 @types/react-dom@^18.0.0",
-    "test:install-react19": "npm install react@^19.0.0 react-dom@^19.0.0 @types/react@^19.0.0 @types/react-dom@^19.0.0"
+    "test:install-react16": "npm install --force react@^16.8.0 react-dom@^16.8.0 @types/react@^16.8.0 @types/react-dom@^16.8.0 @testing-library/react@^12.1.5 @testing-library/react-hooks@^8.0.1",
+    "test:install-react17": "npm install --force react@^17.0.0 react-dom@^17.0.0 @types/react@^17.0.0 @types/react-dom@^17.0.0 @testing-library/react@^12.1.5 @testing-library/react-hooks@^8.0.1",
+    "test:install-react18": "npm install --force react@^18.0.0 react-dom@^18.0.0 @types/react@^18.0.0 @types/react-dom@^18.0.0 @testing-library/react@^14.1.0",
+    "test:install-react19": "npm install --force react@^19.0.0 react-dom@^19.0.0 @types/react@^19.0.0 @types/react-dom@^19.0.0 @testing-library/react@^14.1.0"
   },
   "keywords": [
     "react",
