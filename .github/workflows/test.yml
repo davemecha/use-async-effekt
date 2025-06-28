@@ -31,9 +31,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install React ${{ matrix.react-version }}
+      - name: Install React and testing libraries for React ${{ matrix.react-version }}
         run: |
-          npm install react@^${{ matrix.react-version }} react-dom@^${{ matrix.react-version }} @types/react@^${{ matrix.react-version }} @types/react-dom@^${{ matrix.react-version }}
+          if [[ "${{ matrix.react-version }}" == "16.8.0" || "${{ matrix.react-version }}" == "17.0.0" ]]; then
+            npm install --force react@^${{ matrix.react-version }} react-dom@^${{ matrix.react-version }} @types/react@^${{ matrix.react-version }} @types/react-dom@^${{ matrix.react-version }} @testing-library/react@^12.1.5 @testing-library/react-hooks@^8.0.1
+          else
+            npm install --force react@^${{ matrix.react-version }} react-dom@^${{ matrix.react-version }} @types/react@^${{ matrix.react-version }} @types/react-dom@^${{ matrix.react-version }} @testing-library/react@^14.1.0
+          fi
 
       - name: Run tests
         run: npm test -- --coverage --watchAll=false
