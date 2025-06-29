@@ -319,4 +319,171 @@ describe("useAsyncEffekt", () => {
     // Should have been called for each dependency change
     expect(mockEffect).toHaveBeenCalledTimes(5);
   });
+
+  it("should handle effect that throws synchronously", async () => {
+    const consoleErrorSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    const syncError = new Error("Synchronous error");
+    const mockEffect = jest.fn().mockImplementation(() => {
+      throw syncError;
+    });
+
+    renderHook(() => useAsyncEffekt(mockEffect, []));
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(mockEffect).toHaveBeenCalledTimes(1);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "useAsyncEffekt error:",
+      syncError
+    );
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("should handle cleanup function that throws", async () => {
+    const consoleErrorSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    const cleanupError = new Error("Cleanup error");
+    const mockCleanup = jest.fn().mockImplementation(() => {
+      throw cleanupError;
+    });
+    const mockEffect = jest.fn().mockResolvedValue(mockCleanup);
+
+    const { unmount } = renderHook(() => useAsyncEffekt(mockEffect, []));
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    unmount();
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(mockCleanup).toHaveBeenCalledTimes(1);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "useAsyncEffekt cleanup error:",
+      cleanupError
+    );
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("should handle async cleanup function that rejects", async () => {
+    const consoleErrorSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    const cleanupError = new Error("Async cleanup error");
+    const mockCleanup = jest.fn().mockRejectedValue(cleanupError);
+    const mockEffect = jest.fn().mockResolvedValue(mockCleanup);
+
+    const { unmount } = renderHook(() => useAsyncEffekt(mockEffect, []));
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    unmount();
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(mockCleanup).toHaveBeenCalledTimes(1);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "useAsyncEffekt cleanup error:",
+      cleanupError
+    );
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("should handle multiple rapid dependency changes", async () => {
+    const mockEffect = jest.fn().mockResolvedValue(undefined);
+    let dep = 1;
+
+    const { rerender } = renderHook(() => useAsyncEffekt(mockEffect, [dep]));
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    // Rapid changes
+    for (let i = 2; i <= 5; i++) {
+      dep = i;
+      rerender();
+    }
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    // Should handle all changes properly
+    expect(mockEffect).toHaveBeenCalledTimes(5);
+  });
+
+  it("should handle effect that returns null", async () => {
+    const mockEffect = jest.fn().mockResolvedValue(null);
+
+    const { unmount } = renderHook(() => useAsyncEffekt(mockEffect, []));
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(mockEffect).toHaveBeenCalledTimes(1);
+
+    // Should not throw when unmounting
+    expect(() => unmount()).not.toThrow();
+  });
+
+  it("should handle undefined dependencies", async () => {
+    const mockEffect = jest.fn().mockResolvedValue(undefined);
+
+    renderHook(() => useAsyncEffekt(mockEffect));
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(mockEffect).toHaveBeenCalledTimes(1);
+  });
+
+  it("should handle empty dependencies array vs undefined", async () => {
+    const mockEffect1 = jest.fn().mockResolvedValue(undefined);
+    const mockEffect2 = jest.fn().mockResolvedValue(undefined);
+
+    const { rerender: rerender1 } = renderHook(() =>
+      useAsyncEffekt(mockEffect1, [])
+    );
+    const { rerender: rerender2 } = renderHook(() =>
+      useAsyncEffekt(mockEffect2)
+    );
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    // Both should run once initially
+    expect(mockEffect1).toHaveBeenCalledTimes(1);
+    expect(mockEffect2).toHaveBeenCalledTimes(1);
+
+    // Rerender with empty deps should not re-run
+    rerender1();
+    // Rerender with undefined deps should re-run every time
+    rerender2();
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(mockEffect1).toHaveBeenCalledTimes(1); // Still 1 - empty deps
+    expect(mockEffect2).toHaveBeenCalledTimes(2); // Now 2 - undefined deps run on every render
+  });
 });

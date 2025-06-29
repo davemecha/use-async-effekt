@@ -340,4 +340,245 @@ describe("useAsyncMemo", () => {
 
     jest.useRealTimers();
   });
+
+  it("should handle synchronous factory function", async () => {
+    const syncFactory = jest.fn().mockReturnValue("sync-value");
+    const { result } = renderHook(() => useAsyncMemo(syncFactory, []));
+
+    expect(result.current).toBeUndefined();
+
+    await waitFor(() => {
+      expect(result.current).toBe("sync-value");
+    });
+
+    expect(syncFactory).toHaveBeenCalledTimes(1);
+    expect(syncFactory).toHaveBeenCalledWith(expect.any(Function));
+  });
+
+  it("should handle factory function that checks isMounted", async () => {
+    let isMountedFn: (() => boolean) | undefined;
+    const factory = jest.fn().mockImplementation((isMounted) => {
+      isMountedFn = isMounted;
+      return Promise.resolve("test-value");
+    });
+
+    const { result, unmount } = renderHook(() => useAsyncMemo(factory, []));
+
+    await waitFor(() => {
+      expect(result.current).toBe("test-value");
+    });
+
+    expect(isMountedFn).toBeDefined();
+    expect(isMountedFn!()).toBe(true);
+
+    unmount();
+    expect(isMountedFn!()).toBe(false);
+  });
+
+  it("should not update state if component unmounts before async operation completes", async () => {
+    let resolveFactory: ((value: string) => void) | undefined;
+    const factory = jest.fn().mockImplementation(() => {
+      return new Promise<string>((resolve) => {
+        resolveFactory = resolve;
+      });
+    });
+
+    const { result, unmount } = renderHook(() => useAsyncMemo(factory, []));
+
+    expect(result.current).toBeUndefined();
+    expect(factory).toHaveBeenCalledTimes(1);
+
+    // Unmount before resolving
+    unmount();
+
+    // Now resolve the promise
+    act(() => {
+      resolveFactory!("late-value");
+    });
+
+    // Should still be undefined since component was unmounted
+    expect(result.current).toBeUndefined();
+  });
+
+  it("should handle factory function returning null", async () => {
+    const factory = jest.fn().mockResolvedValue(null);
+    const { result } = renderHook(() => useAsyncMemo(factory, []));
+
+    await waitFor(() => {
+      expect(result.current).toBeNull();
+    });
+  });
+
+  it("should handle factory function returning undefined", async () => {
+    const factory = jest.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useAsyncMemo(factory, []));
+
+    // Should remain undefined, but factory should have been called
+    expect(result.current).toBeUndefined();
+    expect(factory).toHaveBeenCalledTimes(1);
+
+    await waitFor(() => {
+      expect(result.current).toBeUndefined();
+    });
+  });
+
+  it("should handle factory function returning 0", async () => {
+    const factory = jest.fn().mockResolvedValue(0);
+    const { result } = renderHook(() => useAsyncMemo(factory, []));
+
+    await waitFor(() => {
+      expect(result.current).toBe(0);
+    });
+  });
+
+  it("should handle factory function returning false", async () => {
+    const factory = jest.fn().mockResolvedValue(false);
+    const { result } = renderHook(() => useAsyncMemo(factory, []));
+
+    await waitFor(() => {
+      expect(result.current).toBe(false);
+    });
+  });
+
+  it("should handle factory function returning empty string", async () => {
+    const factory = jest.fn().mockResolvedValue("");
+    const { result } = renderHook(() => useAsyncMemo(factory, []));
+
+    await waitFor(() => {
+      expect(result.current).toBe("");
+    });
+  });
+
+  it("should preserve last successful value through multiple errors", async () => {
+    const mockConsoleError = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    const factory = jest
+      .fn()
+      .mockResolvedValueOnce("success-1")
+      .mockRejectedValueOnce(new Error("error-1"))
+      .mockRejectedValueOnce(new Error("error-2"))
+      .mockResolvedValueOnce("success-2");
+
+    const { result, rerender } = renderHook(
+      ({ dep }: { dep: number }) => useAsyncMemo(factory, [dep]),
+      { initialProps: { dep: 1 } }
+    );
+
+    // First success
+    await waitFor(() => {
+      expect(result.current).toBe("success-1");
+    });
+
+    // First error - should keep last successful value
+    act(() => {
+      rerender({ dep: 2 });
+    });
+
+    await waitFor(() => {
+      expect(result.current).toBe("success-1");
+    });
+
+    // Second error - should still keep last successful value
+    act(() => {
+      rerender({ dep: 3 });
+    });
+
+    await waitFor(() => {
+      expect(result.current).toBe("success-1");
+    });
+
+    // Second success - should update to new value
+    act(() => {
+      rerender({ dep: 4 });
+    });
+
+    await waitFor(() => {
+      expect(result.current).toBe("success-2");
+    });
+
+    expect(mockConsoleError).toHaveBeenCalledTimes(2);
+    mockConsoleError.mockRestore();
+  });
+
+  it("should handle complex object values", async () => {
+    const complexValue = {
+      id: 1,
+      name: "test",
+      nested: { value: "nested-test" },
+      array: [1, 2, 3],
+    };
+
+    const factory = jest.fn().mockResolvedValue(complexValue);
+    const { result } = renderHook(() => useAsyncMemo(factory, []));
+
+    await waitFor(() => {
+      expect(result.current).toEqual(complexValue);
+      expect(result.current).toBe(complexValue); // Same reference
+    });
+  });
+
+  it("should handle factory that uses isMounted to prevent state updates", async () => {
+    let shouldComplete = false;
+    const factory = jest.fn().mockImplementation(async (isMounted) => {
+      // Simulate some async work
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      if (!isMounted()) {
+        return "should-not-be-used";
+      }
+
+      return shouldComplete ? "completed" : "initial";
+    });
+
+    const { result, rerender } = renderHook(
+      ({ trigger }: { trigger: boolean }) => useAsyncMemo(factory, [trigger]),
+      { initialProps: { trigger: false } }
+    );
+
+    await waitFor(() => {
+      expect(result.current).toBe("initial");
+    });
+
+    shouldComplete = true;
+    act(() => {
+      rerender({ trigger: true });
+    });
+
+    await waitFor(() => {
+      expect(result.current).toBe("completed");
+    });
+
+    expect(factory).toHaveBeenCalledTimes(2);
+  });
+
+  it("should handle very rapid dependency changes", async () => {
+    const factory = jest
+      .fn()
+      .mockResolvedValueOnce("value-1")
+      .mockResolvedValueOnce("value-2")
+      .mockResolvedValueOnce("value-3")
+      .mockResolvedValueOnce("value-4")
+      .mockResolvedValueOnce("value-5");
+
+    const { result, rerender } = renderHook(
+      ({ dep }: { dep: number }) => useAsyncMemo(factory, [dep]),
+      { initialProps: { dep: 1 } }
+    );
+
+    // Rapid changes
+    for (let i = 2; i <= 5; i++) {
+      act(() => {
+        rerender({ dep: i });
+      });
+    }
+
+    // Should eventually settle on the last value
+    await waitFor(() => {
+      expect(result.current).toBe("value-5");
+    });
+
+    expect(factory).toHaveBeenCalledTimes(5);
+  });
 });
