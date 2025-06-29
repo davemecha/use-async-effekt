@@ -43,7 +43,7 @@ jobs:
         run: npm test -- --coverage --watchAll=false
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           file: ./coverage/lcov.info
           flags: react-${{ matrix.react-version }}-node-${{ matrix.node-version }}
