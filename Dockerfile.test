@@ -1,0 +1,32 @@
+ARG NODE_VERSION
+ARG REACT_VERSION
+
+FROM node:${NODE_VERSION}-slim
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+
+RUN npm ci
+
+# Conditionally install react-hooks for older React versions
+RUN if [ "${REACT_VERSION}" = "16.8.0" ] || [ "${REACT_VERSION}" = "17.0.0" ]; then \
+      npm install \
+        "react@${REACT_VERSION}" \
+        "react-dom@${REACT_VERSION}" \
+        "@types/react@${REACT_VERSION}" \
+        "@types/react-dom@${REACT_VERSION}" \
+        "@testing-library/react@^12.1.5" \
+        "@testing-library/react-hooks@^8.0.1"; \
+    else \
+      npm install \
+        "react@${REACT_VERSION}" \
+        "react-dom@${REACT_VERSION}" \
+        "@types/react@${REACT_VERSION}" \
+        "@types/react-dom@${REACT_VERSION}" \
+        "@testing-library/react@^14.1.0"; \
+    fi
+
+COPY . .
+
+CMD npm test -- --coverage --watchAll=false
