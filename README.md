@@ -1,11 +1,24 @@
-# use-async-effekt
+# use-async-effekt-hooks
 
-React hooks for async effects and memoization with proper dependency tracking.
+React hooks for async effects and memoization with proper dependency tracking and linting support.
+
+![CI](https://github.com/davemecha/use-async-effekt/actions/workflows/test.yml/badge.svg)
+![npm](https://img.shields.io/npm/v/use-async-effekt-hooks)
+![codecov](https://codecov.io/gh/davemecha/use-async-effekt/branch/main/graph/badge.svg)
+![npm downloads](https://img.shields.io/npm/dw/use-async-effekt-hooks)
+![MIT](https://img.shields.io/npm/l/use-async-effekt-hooks)
+![bundle size](https://img.shields.io/bundlephobia/minzip/use-async-effekt-hooks)
+
+![bundle size](https://img.shields.io/bundlephobia/minzip/use-async-effekt-hooks)
+![Types](https://img.shields.io/npm/types/use-async-effekt-hooks)
+![react 16-19](https://img.shields.io/badge/react-16‒19-brightgreen?logo=react)
+![GitHub stars](https://img.shields.io/github/stars/davemecha/use-async-effekt?style=social)
+![issues](https://img.shields.io/github/issues/davemecha/use-async-effekt)
 
 ## Installation
 
 ```bash
-npm install use-async-effekt
+npm install use-async-effekt-hooks
 ```
 
 ## Hooks
@@ -31,7 +44,7 @@ The hook provides:
 #### Basic Usage (Without Waiting)
 
 ```typescript
-import { useAsyncEffekt } from "use-async-effekt";
+import { useAsyncEffekt } from "use-async-effekt-hooks";
 import { useState } from "react";
 
 function MyComponent() {
