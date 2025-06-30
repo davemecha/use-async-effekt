@@ -15,12 +15,18 @@ for REACT_VERSION in "${REACT_VERSIONS[@]}"; do
     echo "Running tests for React ${REACT_VERSION} with Node ${NODE_VERSION}"
     IMAGE_NAME="use-async-effekt-test-react${REACT_VERSION}-node${NODE_VERSION}"
 
-    docker build -t "${IMAGE_NAME}" \
+    if ! docker build -t "${IMAGE_NAME}" \
       --build-arg NODE_VERSION="${NODE_VERSION}" \
       --build-arg REACT_VERSION="${REACT_VERSION}" \
-      -f Dockerfile.test .
+      -f Dockerfile.test .; then
+      echo "Failed to build Docker image for React ${REACT_VERSION} with Node ${NODE_VERSION}"
+      exit 1
+    fi
 
-    docker run --rm "${IMAGE_NAME}"
+    if ! docker run --rm "${IMAGE_NAME}"; then
+      echo "Tests failed for React ${REACT_VERSION} with Node ${NODE_VERSION}"
+      exit 1
+    fi
 
     echo "--------------------------------------------------"
   done
