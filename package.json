@@ -1,6 +1,6 @@
 {
   "name": "use-async-effekt",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "React hooks for async effects and memoization with proper dependency tracking",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,7 +12,18 @@
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:react16": "npm run test:install-react16 && npm test",
+    "test:react17": "npm run test:install-react17 && npm test",
+    "test:react18": "npm run test:install-react18 && npm test",
+    "test:react19": "npm run test:install-react19 && npm test",
+    "test:all-versions": "npm run test:react16 && npm run test:react17 && npm run test:react18 && npm run test:react19",
+    "test:install-react16": "npm install react@^16.8.0 react-dom@^16.8.0 @types/react@^16.8.0 @types/react-dom@^16.8.0 @testing-library/react@^12.1.5 @testing-library/react-hooks@^8.0.1",
+    "test:install-react17": "npm install react@^17.0.0 react-dom@^17.0.0 @types/react@^17.0.0 @types/react-dom@^17.0.0 @testing-library/react@^12.1.5 @testing-library/react-hooks@^8.0.1",
+    "test:install-react18": "npm install react@^18.0.0 react-dom@^18.0.0 @types/react@^18.0.0 @types/react-dom@^18.0.0 @testing-library/react@^14.1.0",
+    "test:install-react19": "npm install react@^19.0.0 react-dom@^19.0.0 @types/react@^19.0.0 @types/react-dom@^19.0.0 @testing-library/react@^16.1.0"
   },
   "keywords": [
     "react",
@@ -36,8 +47,49 @@
     "react": ">=16.8.0 <20"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.0",
+    "@testing-library/react": "^14.1.0",
+    "@testing-library/user-event": "^14.5.0",
+    "@types/jest": "^29.5.0",
     "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@types/semver": "^7.7.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
     "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "semver": "^7.7.2",
+    "ts-jest": "^29.1.0",
     "typescript": "^5.0.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/setupTests.ts"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.test.{ts,tsx}",
+      "**/*.test.{ts,tsx}"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.{ts,tsx}",
+      "!src/__tests__/**/*.{ts,tsx}",
+      "!src/**/*.d.ts",
+      "!src/setupTests.ts"
+    ],
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    }
   }
 }

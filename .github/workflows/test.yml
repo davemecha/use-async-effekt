@@ -1,0 +1,74 @@
+name: Test
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        react-version: ["16.8.0", "17.0.0", "18.0.0", "19.0.0"]
+        node-version: [16, 18, 20]
+        exclude:
+          # React 19 requires Node 18+
+          - react-version: "19.0.0"
+            node-version: 16
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install React and testing libraries for React ${{ matrix.react-version }}
+        run: |
+          if [[ "${{ matrix.react-version }}" == "16.8.0" || "${{ matrix.react-version }}" == "17.0.0" ]]; then
+            npm install react@^${{ matrix.react-version }} react-dom@^${{ matrix.react-version }} @types/react@^${{ matrix.react-version }} @types/react-dom@^${{ matrix.react-version }} @testing-library/react@^12.1.5 @testing-library/react-hooks@^8.0.1
+          elif [[ "${{ matrix.react-version }}" == "18.0.0" ]]; then
+            npm install react@^${{ matrix.react-version }} react-dom@^${{ matrix.react-version }} @types/react@^${{ matrix.react-version }} @types/react-dom@^${{ matrix.react-version }} @testing-library/react@^14.1.0
+          else
+            npm install react@^${{ matrix.react-version }} react-dom@^${{ matrix.react-version }} @types/react@^${{ matrix.react-version }} @types/react-dom@^${{ matrix.react-version }} @testing-library/react@^16.1.0
+          fi
+
+      - name: Run tests
+        run: npm test -- --coverage --watchAll=false
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage/lcov.info
+          flags: react-${{ matrix.react-version }}-node-${{ matrix.node-version }}
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Check types
+        run: npx tsc --noEmit
