@@ -2,18 +2,17 @@
 
 React hooks for async effects and memoization with proper dependency tracking and linting support.
 
-![CI](https://github.com/davemecha/use-async-effekt/actions/workflows/test.yml/badge.svg)
-![npm](https://img.shields.io/npm/v/use-async-effekt-hooks)
-![codecov](https://codecov.io/gh/davemecha/use-async-effekt/branch/main/graph/badge.svg)
-![npm downloads](https://img.shields.io/npm/dw/use-async-effekt-hooks)
-![MIT](https://img.shields.io/npm/l/use-async-effekt-hooks)
-![bundle size](https://img.shields.io/bundlephobia/minzip/use-async-effekt-hooks)
+[![CI](https://github.com/davemecha/use-async-effekt/actions/workflows/test.yml/badge.svg)](https://github.com/davemecha/use-async-effekt/actions/workflows/test.yml)
+[![npm](https://img.shields.io/npm/v/use-async-effekt-hooks)](https://www.npmjs.com/package/use-async-effekt-hooks)
+[![codecov](https://codecov.io/gh/davemecha/use-async-effekt/branch/main/graph/badge.svg)](https://codecov.io/gh/davemecha/use-async-effekt)
+[![npm downloads](https://img.shields.io/npm/dw/use-async-effekt-hooks)](https://www.npmjs.com/package/use-async-effekt-hooks)
+[![MIT](https://img.shields.io/npm/l/use-async-effekt-hooks)](LICENSE)
 
-![bundle size](https://img.shields.io/bundlephobia/minzip/use-async-effekt-hooks)
-![Types](https://img.shields.io/npm/types/use-async-effekt-hooks)
-![react 16-19](https://img.shields.io/badge/react-16‒19-brightgreen?logo=react)
-![GitHub stars](https://img.shields.io/github/stars/davemecha/use-async-effekt?style=social)
-![issues](https://img.shields.io/github/issues/davemecha/use-async-effekt)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/use-async-effekt-hooks)](https://bundlephobia.com/package/use-async-effekt-hooks)
+[![Types](https://img.shields.io/npm/types/use-async-effekt-hooks)](https://www.npmjs.com/package/use-async-effekt-hooks)
+[![react 16-19](https://img.shields.io/badge/react-16‒19-brightgreen?logo=react)](https://react.dev/)
+[![GitHub stars](https://img.shields.io/github/stars/davemecha/use-async-effekt?style=social)](https://github.com/davemecha/use-async-effekt/stargazers)
+[![issues](https://img.shields.io/github/issues/davemecha/use-async-effekt)](https://github.com/davemecha/use-async-effekt/issues)
 
 ## Installation
 
