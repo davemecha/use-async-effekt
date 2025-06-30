@@ -9,7 +9,7 @@ COPY package.json package-lock.json ./
 
 RUN npm ci
 
-# Conditionally install react-hooks for older React versions
+# Conditionally install testing libraries based on React version
 RUN if [ "${REACT_VERSION}" = "16.8.0" ] || [ "${REACT_VERSION}" = "17.0.0" ]; then \
       npm install \
         "react@${REACT_VERSION}" \
@@ -18,13 +18,20 @@ RUN if [ "${REACT_VERSION}" = "16.8.0" ] || [ "${REACT_VERSION}" = "17.0.0" ]; t
         "@types/react-dom@${REACT_VERSION}" \
         "@testing-library/react@^12.1.5" \
         "@testing-library/react-hooks@^8.0.1"; \
-    else \
+    elif [ "${REACT_VERSION}" = "18.0.0" ]; then \
       npm install \
         "react@${REACT_VERSION}" \
         "react-dom@${REACT_VERSION}" \
         "@types/react@${REACT_VERSION}" \
         "@types/react-dom@${REACT_VERSION}" \
         "@testing-library/react@^14.1.0"; \
+    else \
+      npm install \
+        "react@${REACT_VERSION}" \
+        "react-dom@${REACT_VERSION}" \
+        "@types/react@${REACT_VERSION}" \
+        "@types/react-dom@${REACT_VERSION}" \
+        "@testing-library/react@^16.1.0"; \
     fi
 
 COPY . .
