@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail  # Exit on error, undefined variables, and pipe failures
 
 REACT_VERSIONS=("16.8.0" "17.0.0" "18.0.0" "19.0.0")
 NODE_VERSIONS=("16" "18" "20")
