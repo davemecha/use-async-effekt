@@ -28,11 +28,53 @@ function getCacheKey(
 }
 
 /**
+ * @experimental This hook is experimental and should be used with caution.
  *
- * @param factory
- * @param deps
- * @param options
- * @returns
+ * A hook for memoizing async computations that integrates with React Suspense.
+ *
+ * This hook allows you to perform an asynchronous operation and suspend the component
+ * until the operation is complete. It's useful for data fetching or any other async
+ * task that needs to be resolved before rendering.
+ *
+ * In SSR environments (e.g., Next.js), the hook always returns `undefined` on the
+ * server for prerendering. This means the suspense fallback will be displayed on
+ * hydration, and nothing will be displayed on the server-side render.
+ *
+ * This hook requires to be used in a client component.
+ *
+ * @param factory - The async function to execute.
+ * @param deps - The dependency array for the memoization.
+ * @param options - An optional options object.
+ * @param options.scope - An optional scope to isolate the cache.
+ * @returns The memoized value, or it suspends the component.
+ *
+ * @example
+ * ```tsx
+ * import { Suspense } from 'react';
+ * import { useAsyncMemoSuspense } from 'use-async-effekt-hooks';
+ *
+ * function UserProfile({ userId }) {
+ *   const user = useAsyncMemoSuspense(async () => {
+ *     const response = await fetch(`https://api.example.com/users/${userId}`);
+ *     return response.json();
+ *   }, [userId]);
+ *
+ *   return (
+ *     <div>
+ *       <h1>{user.name}</h1>
+ *       <p>{user.email}</p>
+ *     </div>
+ *   );
+ * }
+ *
+ * function App() {
+ *   return (
+ *     <Suspense fallback={<div>Loading...</div>}>
+ *       <UserProfile userId="1" />
+ *     </Suspense>
+ *   );
+ * }
+ * ```
  */
 export function useAsyncMemoSuspense<T>(
   factory: () => Promise<T> | T,
