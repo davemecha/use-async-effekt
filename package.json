@@ -2,6 +2,7 @@
   "name": "use-async-effekt-hooks",
   "version": "1.0.0",
   "description": "React hooks for async effects and memoization with proper dependency tracking and linting support",
+  "sideEffects": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -59,7 +60,7 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "semver": "^7.7.2",
-    "ts-jest": "^29.1.0",
+    "ts-jest": "^29.4.0",
     "typescript": "^5.0.0"
   },
   "jest": {
@@ -76,7 +77,8 @@
       "src/**/*.{ts,tsx}",
       "!src/__tests__/**/*.{ts,tsx}",
       "!src/**/*.d.ts",
-      "!src/setupTests.ts"
+      "!src/setupTests.ts",
+      "!src/**/test-utils.ts"
     ],
     "coverageReporters": [
       "text",
