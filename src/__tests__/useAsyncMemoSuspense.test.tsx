@@ -88,20 +88,26 @@ describe("useAsyncMemoSuspense - Core Functionality", () => {
   beforeEach(() => {
     consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     jest.clearAllMocks();
+    jest.clearAllTimers();
+    jest.useFakeTimers();
   });
 
   afterEach(() => {
     consoleErrorSpy.mockRestore();
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   });
 
   describe("Basic async operations", () => {
     it("should suspend and then render resolved value", async () => {
-      const factory = jest.fn(
-        () =>
-          new Promise<string>((resolve) =>
-            setTimeout(() => resolve("async-result"), 50)
-          )
-      );
+      const factory = jest
+        .fn()
+        .mockImplementation(
+          () =>
+            new Promise<string>((resolve) =>
+              setTimeout(() => resolve("async-result"), 50)
+            )
+        );
 
       render(
         <Suspense fallback={<div data-testid="loading">Loading...</div>}>
@@ -117,17 +123,19 @@ describe("useAsyncMemoSuspense - Core Functionality", () => {
       expect(screen.getByTestId("loading")).toBeInTheDocument();
       expect(factory).toHaveBeenCalledTimes(1);
 
-      await waitFor(
-        () =>
-          expect(screen.getByTestId("async-result")).toHaveTextContent(
-            "Value: async-result"
-          ),
-        { timeout: 200 }
+      await act(async () => {
+        jest.advanceTimersByTime(50);
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId("async-result")).toHaveTextContent(
+          "Value: async-result"
+        )
       );
     });
 
     it("should handle synchronous values without suspending", async () => {
-      const factory = jest.fn(() => "sync-result");
+      const factory = jest.fn().mockReturnValue("sync-result");
 
       render(
         <Suspense fallback={<div data-testid="loading">Loading...</div>}>
@@ -154,7 +162,7 @@ describe("useAsyncMemoSuspense - Core Functionality", () => {
   describe("Error handling", () => {
     it("should throw async errors to error boundary", async () => {
       const error = new Error("Async operation failed");
-      const factory = jest.fn(() => Promise.reject(error));
+      const factory = jest.fn().mockRejectedValue(error);
 
       render(
         <ErrorBoundary>
@@ -180,7 +188,7 @@ describe("useAsyncMemoSuspense - Core Functionality", () => {
 
     it("should throw sync errors to error boundary", () => {
       const error = new Error("Sync operation failed");
-      const factory = jest.fn(() => {
+      const factory = jest.fn().mockImplementation(() => {
         throw error;
       });
 
@@ -251,8 +259,8 @@ describe("useAsyncMemoSuspense - Core Functionality", () => {
 
   describe("Scoping", () => {
     it("should differentiate caches with different scopes", async () => {
-      const factory1 = jest.fn(() => Promise.resolve("scoped-value-1"));
-      const factory2 = jest.fn(() => Promise.resolve("scoped-value-2"));
+      const factory1 = jest.fn().mockResolvedValue("scoped-value-1");
+      const factory2 = jest.fn().mockResolvedValue("scoped-value-2");
 
       render(
         <Suspense fallback={<div data-testid="loading">Loading...</div>}>
@@ -298,7 +306,12 @@ describe("useAsyncMemoSuspense - Core Functionality", () => {
               resolver = res;
             })
         )
-        .mockResolvedValueOnce("transition-value-2");
+        .mockImplementationOnce(
+          () =>
+            new Promise<string>((resolve) =>
+              setTimeout(() => resolve("transition-value-2"), 10)
+            )
+        );
 
       const App = ({ dep }: { dep: number }) => {
         const value = useAsyncMemoSuspense(factory, [dep], {
@@ -337,6 +350,10 @@ describe("useAsyncMemoSuspense - Core Functionality", () => {
       expect(screen.getByTestId("transition-result")).toHaveTextContent(
         "Value: transition-value-1"
       );
+
+      await act(async () => {
+        jest.advanceTimersByTime(10);
+      });
 
       await waitFor(() =>
         expect(screen.getByTestId("transition-result")).toHaveTextContent(
