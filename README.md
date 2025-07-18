@@ -14,6 +14,8 @@ React hooks for async effects and memoization with proper dependency tracking an
 [![GitHub stars](https://img.shields.io/github/stars/davemecha/use-async-effekt?style=social)](https://github.com/davemecha/use-async-effekt/stargazers)
 [![issues](https://img.shields.io/github/issues/davemecha/use-async-effekt)](https://github.com/davemecha/use-async-effekt/issues)
 
+Note: Tests are vibe coded. Specific tests are added when bugs are reported.
+
 ## Installation
 
 ```bash
@@ -373,15 +375,15 @@ This configuration tells ESLint to treat `useAsyncEffekt` and `useAsyncMemo` the
 
 **Important Notes:**
 
--   **SSR Environments (e.g., Next.js):** In a server-side rendering environment, this hook will always return `undefined` on the server. This ensures that the component will suspend on the client during hydration, showing the Suspense fallback, rather than attempting to render on the server.
--   **Client Component:** This hook must be used within a "client component" (e.g., in Next.js, the file must have the `"use client";` directive at the top).
--   **Experimental:** This hook is experimental and its API might change in future versions.
+- **SSR Environments (e.g., Next.js):** In a server-side rendering environment, this hook will always return `undefined` on the server. The component will suspend on the client during hydration (not on initial render on the server). This means the suspense fallback will be displayed on hydration, and nothing will be displayed on the server-side render.
+- **Client Component:** This hook must be used within a "client component" (e.g., in Next.js, the file must have the `"use client";` directive at the top).
+- **Experimental:** This hook is experimental and its API might change in future versions.
 
 **Example:**
 
 ```tsx
-import { Suspense } from 'react';
-import { useAsyncMemoSuspense } from 'use-async-effekt-hooks';
+import { Suspense } from "react";
+import { useAsyncMemoSuspense } from "use-async-effekt-hooks";
 
 function UserProfile({ userId }) {
   const user = useAsyncMemoSuspense(async () => {
