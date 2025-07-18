@@ -22,8 +22,6 @@ function getCacheKey(
   deps: DependencyList,
   scope?: string
 ): string {
-  // Use function toString and JSON.stringify for deps as a simple cache key
-  // In production, you might want a more sophisticated key generation
   return JSON.stringify([factory.toString(), deps, scope || ""]);
 }
 
