@@ -14,6 +14,8 @@ React hooks for async effects and memoization with proper dependency tracking an
 [![GitHub stars](https://img.shields.io/github/stars/davemecha/use-async-effekt?style=social)](https://github.com/davemecha/use-async-effekt/stargazers)
 [![issues](https://img.shields.io/github/issues/davemecha/use-async-effekt)](https://github.com/davemecha/use-async-effekt/issues)
 
+Note: Tests are vibe coded. Specific tests are added when bugs are reported.
+
 ## Installation
 
 ```bash
@@ -310,7 +312,7 @@ module.exports = {
     "react-hooks/exhaustive-deps": [
       "warn",
       {
-        additionalHooks: "(useAsyncEffekt|useAsyncMemo)",
+        additionalHooks: "(useAsyncEffekt|useAsyncMemo|useAsyncMemoSuspense)",
       },
     ],
   },
@@ -325,7 +327,7 @@ Or if you're using `.eslintrc.json`:
     "react-hooks/exhaustive-deps": [
       "warn",
       {
-        "additionalHooks": "(useAsyncEffekt|useAsyncMemo)"
+        "additionalHooks": "(useAsyncEffekt|useAsyncMemo|useAsyncMemoSuspense)"
       }
     ]
   }
@@ -359,6 +361,52 @@ This configuration tells ESLint to treat `useAsyncEffekt` and `useAsyncMemo` the
 - `deps?: DependencyList` - Optional dependency array (same as `useMemo`)
 
 **Returns:** `T | undefined` - The memoized value, or `undefined` while loading
+
+### `useAsyncMemoSuspense(factory, deps?, options?)`
+
+**Parameters:**
+
+- `factory: () => Promise<T> | T` - The async function to execute.
+- `deps?: DependencyList` - Optional dependency array (same as `useMemo`).
+- `options?: { scope?: string }` - Optional options object.
+  - `scope?: string` - An optional scope to isolate the cache. This is useful when you have multiple instances of the hook with the same factory and dependencies but you want to keep their caches separate.
+
+**Returns:** `T` - The memoized value. It suspends the component while the async operation is in progress.
+
+**Important Notes:**
+
+- **SSR Environments (e.g., Next.js):** In a server-side rendering environment, this hook will always return `undefined` on the server. The component will suspend on the client during hydration (not on initial render on the server). This means the suspense fallback will be displayed on hydration, and nothing will be displayed on the server-side render.
+- **Client Component:** This hook must be used within a "client component" (e.g., in Next.js, the file must have the `"use client";` directive at the top).
+- **Experimental:** This hook is experimental and its API might change in future versions.
+
+**Example:**
+
+```tsx
+import { Suspense } from "react";
+import { useAsyncMemoSuspense } from "use-async-effekt-hooks";
+
+function UserProfile({ userId }) {
+  const user = useAsyncMemoSuspense(async () => {
+    const response = await fetch(`https://api.example.com/users/${userId}`);
+    return response.json();
+  }, [userId]);
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>{user.email}</p>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <UserProfile userId="1" />
+    </Suspense>
+  );
+}
+```
 
 ## Features
 

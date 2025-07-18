@@ -4,6 +4,7 @@ import { useAsyncMemo } from "../useAsyncMemo";
 
 describe("useAsyncMemo", () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     jest.clearAllTimers();
     jest.useRealTimers();
   });

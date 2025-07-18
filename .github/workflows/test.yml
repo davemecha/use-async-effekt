@@ -41,7 +41,12 @@ jobs:
             npm install react@^${{ matrix.react-version }} react-dom@^${{ matrix.react-version }} @types/react@^${{ matrix.react-version }} @types/react-dom@^${{ matrix.react-version }} @testing-library/react@^16.1.0
           fi
 
-      - name: Run tests
+      - name: Run tests (excluding Suspense tests for React 16/17)
+        if: matrix.react-version == '16.8.0' || matrix.react-version == '17.0.0'
+        run: npm test -- --coverage --watchAll=false --testPathIgnorePatterns=".*useAsyncMemoSuspense.*" --collectCoverageFrom="src/**/*.ts" --collectCoverageFrom="!src/useAsyncMemoSuspense.ts"
+
+      - name: Run all tests (React 18+)
+        if: matrix.react-version == '18.0.0' || matrix.react-version == '19.0.0'
         run: npm test -- --coverage --watchAll=false
 
       - name: Upload coverage to Codecov
