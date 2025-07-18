@@ -1,6 +1,6 @@
 {
   "name": "use-async-effekt-hooks",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "React hooks for async effects and memoization with proper dependency tracking and linting support",
   "sideEffects": false,
   "main": "dist/index.js",
